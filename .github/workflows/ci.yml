@@ -1,29 +1,19 @@
-name: Continuous Integration
+name: ci
 
-env:
-  RUST_LOG: info
-  RUST_BACKTRACE: 1
-  BAZEL_STARTUP_FLAGS: --bazelrc=${{ github.workspace }}/.github/github.bazelrc
+on: [pull_request]
 
-on:
-  pull_request:
-    branches: [main]
-  workflow_call:
+permissions:
+  contents: read
 
 jobs:
   test:
-    name: Test
-    strategy:
-      matrix:
-        runner:
-          #- windows-latest  # windows
-          - macos-latest    # macos
-          #- ubuntu-latest   # linux
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Build
-        run: bazel build ...
-      - name: Test
-        run: bazel test ...
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Setup Bazel
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/bazel" \
+            https://github.com/bazelbuild/bazelisk/releases/download/v1.30.0/bazelisk-linux-amd64
+          chmod +x "$RUNNER_TEMP/bazel"
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+      - run: bazel test //...
